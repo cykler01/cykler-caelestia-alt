@@ -47,6 +47,8 @@ class UtilitiesCards : public settings::ObjectNode {
     CONFIG_PROPERTY(bool, keepAwake, true)
     CONFIG_PROPERTY(bool, recorder, true)
     CONFIG_PROPERTY(bool, quickToggles, true)
+    // Off by default: needs kdeconnect (and optionally sshfs/adb/scrcpy) to do anything
+    CONFIG_PROPERTY(bool, phoneShare, false)
 };
 
 class UtilitiesConfig : public settings::ObjectNode {

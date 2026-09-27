@@ -24,6 +24,7 @@ This is my take on the Caelestia shell - upstream's desktop shell with my own fe
 | Music player | External players only | In-shell local music player, with a library browser in the notification popout grouped by folder or by artist, and local-only transport controls under it |
 | To-do list | Fuzzel script in the dotfiles | `>todo` list in the launcher |
 | Window overview | --- | 4-finger swipe up or the top-left hot corner shows every workspace and its windows, click to jump |
+| Phone integration | --- | Opt-in KDE Connect utilities card: pair, send files, browse storage and mirror the screen |
 
 
 ## Features added on top of upstream
@@ -310,6 +311,49 @@ Set `gestures` to `false` to stop the shell registering the swipes (they go away
 Hyprland reload), for example if you already bind those swipes yourself, and `hotCorner` to
 `false` to turn the corner off. `hotCornerSize` is the corner's size in pixels.
 
+### Phone integration (KDE Connect)
+
+A utilities card for working with a phone over KDE Connect. It is **off by default**: switch it
+on under *Settings > Panels > Utilities > Phone share*, or with `utilities.cards.phoneShare` in
+`shell.json`:
+
+```json
+"utilities": {
+    "cards": {
+        "phoneShare": true
+    }
+}
+```
+
+With the card on, it lists the phones KDE Connect knows about:
+
+-   **Pair, unpair, accept or reject** - paired devices can be shared with; reachable devices that
+    are not paired yet appear under *Available devices*, where a request can be sent, accepted
+    (showing the verification key both devices should match) or rejected.
+-   **Battery** - the charge and charging state of paired devices.
+-   **Mount, browse and download** - phone storage can be mounted through KDE Connect's SFTP mount
+    and browsed inside the card, and a file can be downloaded to the PC with progress and a cancel
+    button. Downloads run off the UI thread.
+-   **Send files** - drag files onto a device row to send them over KDE Connect's share plugin.
+    Dragging files over the screen opens the utilities panel so they can be dropped.
+-   **Screen mirroring** - mirror the phone with `scrcpy`, over USB or wireless debugging. adb
+    devices are matched to KDE Connect devices by network address, so the right phone is picked
+    when several are around, and USB is preferred when both are connected. A phone not yet paired
+    for wireless debugging is paired from the card with the code from the phone's *Pair device
+    with pairing code* screen.
+
+Everything is optional: the card needs `kdeconnect` (which the shell never starts on its own),
+browsing and downloading need `sshfs`, and the mirror button only appears when `adb` and
+`scrcpy` 4.0+ are installed. With the card off, nothing changes.
+
+A couple of things to know:
+
+-   PC to phone transfers go through KDE Connect's share plugin, which reports no progress, so the
+    card only confirms that KDE Connect accepted the files. If the phone has the share plugin
+    disabled, the files are dropped there with no feedback.
+-   A phone that drops off the network can leave filesystem calls on its mount blocking; the mount
+    is checked off the UI thread and unmounted after 3 seconds if it does not respond.
+
 ### Turning special workspaces off
 
 *Settings > Workspaces > Special workspaces* (`bar.workspaces.specialWorkspaces` in `shell.json`) is
@@ -581,6 +625,13 @@ Flags:
 -   [`qt6-m3shapes-git`](https://github.com/soramanew/m3shapes)
 -   `libcava`
 -   Fonts: `ttf-material-symbols-variable`, `ttf-rubik-vf`, `ttf-cascadia-code-nerd`
+
+##### Optional (for the KDE Connect phone card under Settings > Panels > Utilities)
+
+-   `kdeconnect` - for the phone share card
+-   `sshfs` - for browsing and downloading files from a phone
+-   `adb` - for screen mirroring
+-   `scrcpy` (4.0 or newer) - for screen mirroring
 </details>
 
 #### 3. Build and install
